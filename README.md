@@ -1,33 +1,18 @@
-<div align="center">
-
-<img src="https://github.com/user-attachments/assets/721c2fa0-d628-4dbf-af6e-642419774bee" alt="Creatr Banner" width="100%" />
-
-<br/>
-
 # ✦ Creatr — AI-Powered Content Platform
 
-**A full-stack creator platform where AI writes with you, not for you.**
+**A full-stack content creation and publishing platform with an integrated AI writing assistant.**
 
-Built as a Final Year Project by students of **B.Tech CSE** at **Invertis University**.
-
-<br/>
-
-![Next.js](https://img.shields.io/badge/Next.js_15-black?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React_19-20232a?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Convex](https://img.shields.io/badge/Convex-EE342F?style=for-the-badge&logo=convex&logoColor=white)
-![Clerk](https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
-
-</div>
+Developed as a Final Year Project by B.Tech Computer Science and Engineering students at **Invertis University**.
 
 ---
 
-## 🧠 What is Creatr?
+## 🧠 About Creatr
 
-**Creatr** is a modern, AI-assisted content creation and publishing platform. Writers and creators can draft rich posts, get AI suggestions powered by **Google Gemini**, upload media via **ImageKit**, and publish to a live public feed — all with real-time data synced through **Convex**.
+**Creatr** is an AI-powered content creation and publishing platform designed to help writers and creators create, manage, and share content efficiently.
 
-Think of it as your personal blog meets a social media platform, with an AI co-pilot built right in.
+The platform integrates Google's Gemini AI to assist users with writing, improving, and expanding their content. It also provides rich text editing, media uploads, creator profiles, real-time analytics, and social engagement features.
+
+Built using modern web technologies, Creatr combines the functionality of a blogging platform with the experience of a creator-focused social network.
 
 ---
 
@@ -35,95 +20,104 @@ Think of it as your personal blog meets a social media platform, with an AI co-p
 
 | Feature | Description |
 |---|---|
-| ✍️ **Rich Text Editor** | Full-featured editor powered by React Quill with formatting, embeds & more |
-| 🤖 **AI Writing Assistant** | Google Gemini integration to generate, improve, or expand your content |
-| 🖼️ **Media Uploads** | Drag-and-drop image uploads via ImageKit CDN |
-| 🔐 **Auth & Profiles** | Secure authentication with Clerk — sign in, sign up, custom usernames |
-| 📊 **Creator Dashboard** | Real-time analytics — views, likes, comments, followers & daily chart |
-| 📰 **Public Feed** | Discover and read published posts from all creators |
-| 👤 **Public Creator Pages** | Each creator gets a shareable profile at `/@username` |
-| ❤️ **Likes & Comments** | Engage with posts; comment moderation built in |
-| � **Follow System** | Follow creators and build your audience |
-| �️ **Post Management** | Draft, publish, edit, or delete posts from one place |
-| 🌙 **Dark Mode** | Sleek dark-first design with Tailwind & Shadcn UI |
+| ✍️ Rich Text Editor | Create and format content with a feature-rich editor. |
+| 🤖 AI Writing Assistant | Generate, improve, and expand content using Google Gemini AI. |
+| 🖼️ Media Uploads | Upload and manage images using ImageKit CDN. |
+| 🔐 Authentication | Secure sign-up, sign-in, and user profiles using Clerk. |
+| 📊 Creator Dashboard | Track views, likes, comments, followers, and daily analytics. |
+| 📰 Public Feed | Explore and discover content published by creators. |
+| 👤 Creator Profiles | Dedicated public profiles with shareable usernames. |
+| ❤️ Likes & Comments | Interact with published posts. |
+| 🤝 Follow System | Follow creators and build a community. |
+| 📝 Post Management | Create, edit, publish, and delete posts. |
+| 🌙 Dark Mode | Modern interface with dark theme support. |
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-```
-Frontend       →  Next.js 15 (App Router) + React 19 + Tailwind CSS v4
-UI Components  →  Shadcn UI + Radix UI + Lucide Icons
-Rich Text      →  React Quill New
-Database       →  Convex (real-time, serverless)
-Auth           →  Clerk
-AI             →  Google Gemini API (@google/generative-ai)
-Media CDN      →  ImageKit
-Charts         →  Chart.js + React Chart.js 2
-Forms          →  React Hook Form + Zod
-Animations     →  tw-animate-css
-```
+| Category | Technologies |
+|---|---|
+| Frontend | Next.js 15, React 19 |
+| Styling | Tailwind CSS v4 |
+| UI Components | Shadcn UI, Radix UI, Lucide Icons |
+| Rich Text Editor | React Quill New |
+| Database | Convex |
+| Authentication | Clerk |
+| AI Integration | Google Gemini API |
+| Media Storage | ImageKit |
+| Charts | Chart.js, React Chart.js 2 |
+| Forms & Validation | React Hook Form, Zod |
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 ai-creator-platform/
 ├── app/
-│   ├── (auth)/              # Sign in & Sign up pages (Clerk)
-│   ├── (public)/            # Public feed & creator profile pages
-│   │   ├── feed/            # Discover all published posts
-│   │   └── [username]/      # Creator public profile + post view
-│   ├── dashboard/           # Protected creator dashboard
-│   │   ├── create/          # New post editor
-│   │   ├── posts/           # Manage posts + edit by ID
-│   │   ├── followers/       # Follower list
-│   │   └── settings/        # Profile settings
-│   ├── actions/             # Server actions (Gemini AI)
-│   └── api/                 # API routes (ImageKit upload)
+│   ├── (auth)/
+│   ├── (public)/
+│   │   ├── feed/
+│   │   └── [username]/
+│   ├── dashboard/
+│   │   ├── create/
+│   │   ├── posts/
+│   │   ├── followers/
+│   │   └── settings/
+│   ├── actions/
+│   └── api/
 │
 ├── components/
-│   ├── post-editor.jsx      # Main post editor shell
-│   ├── post-editor-content  # Rich text + AI toolbar
-│   ├── post-editor-header   # Title, status, publish controls
-│   ├── post-editor-settings # Tags, category, featured image
-│   ├── daily-views-chart    # Analytics chart component
-│   ├── post-card.jsx        # Feed post card
-│   └── ui/                  # Shadcn UI components
+│   ├── post-editor.jsx
+│   ├── post-editor-content
+│   ├── post-editor-header
+│   ├── post-editor-settings
+│   ├── daily-views-chart
+│   ├── post-card.jsx
+│   └── ui/
 │
 └── convex/
-    ├── schema.js            # DB schema (users, posts, comments, likes, follows, dailyStats)
-    ├── posts.js             # Post CRUD queries/mutations
-    ├── users.js             # User management
-    ├── comments.js          # Comments system
-    ├── likes.js             # Likes system
-    ├── follows.js           # Follow/unfollow
-    ├── feed.js              # Public feed queries
-    ├── dashboard.js         # Analytics queries
-    └── public.js            # Public profile queries
+    ├── schema.js
+    ├── posts.js
+    ├── users.js
+    ├── comments.js
+    ├── likes.js
+    ├── follows.js
+    ├── feed.js
+    ├── dashboard.js
+    └── public.js
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone the repository
+### Prerequisites
+
+- Node.js (LTS version recommended)
+- npm
+- Convex account
+- Clerk account
+- Google Gemini API key
+- ImageKit account
+
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/keshrirohan/ai-creator-platform.git
+git clone YOUR_GROUP_REPOSITORY_URL
 cd ai-creator-platform
 ```
 
-### 2. Install dependencies
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Set up environment variables
+### 3. Configure Environment Variables
 
-Create a `.env.local` file in the root and fill in the following:
+Create a `.env.local` file in the project root directory.
 
 ```env
 # Convex
@@ -137,66 +131,71 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 CLERK_JWT_ISSUER_DOMAIN=
 
-# ImageKit (Media CDN)
+# ImageKit
 NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=
 NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT=
 IMAGEKIT_PRIVATE_KEY=
 
-# Unsplash (optional)
+# Unsplash (Optional)
 NEXT_PUBLIC_UNSPLASH_ACCESS_KEY=
 
 # Google Gemini AI
 GEMINI_API_KEY=
 ```
 
-### 4. Run the Convex dev server
+### 4. Start Convex
 
 ```bash
 npx convex dev
 ```
 
-### 5. Start the Next.js dev server
+### 5. Start the Development Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and you're live. 🎉
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 👨‍💻 Team
+## 👨‍💻 Project Team
 
-This project was built with ☕ and way too many late nights by:
+Developed by the following students as part of their Final Year Project.
 
-<table>
-  <tr>
-    <td align="center">
-      <b>Rohan Keshri</b><br/>
-      <a href="https://github.com/keshrirohan">@keshrirohan</a>
-    </td>
-    <td align="center">
-      <b>Vansh Gupta</b><br/>
-      —
-    </td>
-    <td align="center">
-      <b>Bhumi Agrawal</b><br/>
-      —
-    </td>
-  </tr>
-</table>
+| Team Member | Role |
+|---|---|
+| Vansh Gupta | |
+| Rohan Keshri | |
+| Bhumi Agrawal | |
 
-**B.Tech Computer Science Engineering**
-Invertis University — Final Year Project
+**Department:** Computer Science and Engineering  
+**University:** Invertis University  
+**Project Type:** Final Year Group Project
+
+---
+
+## 🎯 Project Objective
+
+The primary objective of Creatr is to simplify digital content creation by combining AI-powered writing assistance with a collaborative creator ecosystem.
+
+The platform aims to provide an accessible environment where users can create, publish, discover, and interact with digital content.
 
 ---
 
 ## 📄 License
 
-This project is for academic purposes. All rights reserved by the authors.
+This project is maintained for academic and educational purposes. Third-party libraries, frameworks, and reused components remain subject to their respective licenses and applicable attribution requirements.
 
 ---
 
 <div align="center">
-  <sub>Built with Next.js · Convex · Clerk · Gemini AI · ImageKit</sub>
+
+**Creatr — Create. Express. Publish.**
+
+Built with Next.js · Convex · Clerk · Gemini AI · ImageKit
+
+**B.Tech Computer Science and Engineering**  
+Invertis University
+
 </div>
