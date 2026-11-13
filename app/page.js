@@ -318,14 +318,16 @@ const Home = () => {
                     &quot;{testimonial.content}&quot;
                   </p>
                   <div className="flex items-center gap-4">
-                    <div className="relative w-12 h-12">
-                      <Image
-                        src={`https://images.unsplash.com/photo-${testimonial.imageId}?w=100&h=100&fit=crop&crop=face`}
-                        alt={testimonial.name}
-                        fill
-                        className="rounded-full border-2 border-gray-700 object-cover"
-                        sizes="48px"
-                      />
+                    <div
+                      className="w-12 h-12 shrink-0 rounded-full border-2 border-gray-700 bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-sm font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      {testimonial.name
+                        .split(" ")
+                        .map((part) => part[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
                     </div>
                     <div>
                       <div className="font-semibold text-white">

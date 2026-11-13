@@ -124,10 +124,19 @@ describe("lib/data — landing page static content", () => {
       });
     });
 
-    test("every testimonial has an imageId for Unsplash", () => {
+    test("testimonials are from the project team", () => {
+      expect(testimonials.map((t) => t.name)).toEqual([
+        "Rohan Keshri",
+        "Vansh Gupta",
+        "Pihu Agrawal",
+      ]);
+    });
+
+    test("testimonials no longer use stock photos (initials avatars instead)", () => {
       testimonials.forEach((t) => {
-        expect(typeof t.imageId).toBe("string");
-        expect(t.imageId.length).toBeGreaterThan(0);
+        expect(t.imageId).toBeUndefined();
+        // first and last name give a two-letter avatar
+        expect(t.name.trim().split(" ").length).toBeGreaterThanOrEqual(2);
       });
     });
   });
