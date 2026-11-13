@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local developer usage tracking (Gemini request counts)
 .dev-usage.json
+
+# local project documentation (kept on this machine, not pushed)
+docs/PROJECT_DOCUMENTATION.md
