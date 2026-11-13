@@ -83,6 +83,33 @@ const TEXT_POSITIONS = [
   { label: "right", value: "east" },
 ];
 
+// Fetch a transformed ImageKit URL and turn failures into a readable message.
+async function checkTransformedImage(url) {
+  let response;
+  try {
+    response = await fetch(url);
+  } catch {
+    // Network/CORS problem: let the <img> tag try to load it directly.
+    return { ok: true };
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (response.ok && contentType.startsWith("image/")) return { ok: true };
+
+  const body = await response.text().catch(() => "");
+  if (response.status === 403 && /ELIMIT|limit exceeded|not sufficient/i.test(body)) {
+    return {
+      ok: false,
+      message:
+        "Your ImageKit account has run out of AI credits, so Remove Background and Drop Shadow can't run. Turn them off to use the other transformations, or add credits in your ImageKit dashboard.",
+    };
+  }
+  return {
+    ok: false,
+    message: `ImageKit couldn't apply these transformations (error ${response.status}). Try different settings.`,
+  };
+}
+
 export default function ImageUploadModal({
   isOpen,
   onClose,
@@ -190,9 +217,10 @@ export default function ImageUploadModal({
         }
       }
 
-      // Background removal
+      // Background removal. "bgremove" is ImageKit's own model and uses far
+      // fewer AI extension units than "removedotbg" (remove.bg).
       if (watchedValues.backgroundRemoved) {
-        transformationChain.push({ effect: "removedotbg" });
+        transformationChain.push({ effect: "bgremove" });
       }
 
       // Drop shadow (only works with transparent background)
@@ -217,8 +245,20 @@ export default function ImageUploadModal({
         transformationChain
       );
 
-      // Add a small delay to show loading state and allow ImageKit to process
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (transformedUrl === uploadedImage.url) {
+        setTransformedImage(transformedUrl);
+        toast.info("No transformations selected");
+        return;
+      }
+
+      // Request the transformed image first so we can show ImageKit's real
+      // error instead of a broken preview. This also waits for ImageKit to
+      // finish processing (AI effects can take a few seconds).
+      const check = await checkTransformedImage(transformedUrl);
+      if (!check.ok) {
+        toast.error(check.message, { duration: 8000 });
+        return; // keep the previous preview
+      }
 
       setTransformedImage(transformedUrl);
       toast.success("Transformations applied!");
@@ -380,7 +420,7 @@ export default function ImageUploadModal({
                       </Button>
                     </div>
                     <p className="text-sm text-slate-400">
-                      AI-powered background removal
+                      AI-powered background removal (uses ImageKit AI credits)
                     </p>
                   </div>
 

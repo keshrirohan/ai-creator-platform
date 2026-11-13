@@ -42,3 +42,6 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# local developer usage tracking (Gemini request counts)
+.dev-usage.json

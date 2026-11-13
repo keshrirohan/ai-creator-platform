@@ -244,7 +244,7 @@ export const getDailyViews = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error("Not authenticated");
+      return [];
     }
 
     // Get current user
@@ -254,7 +254,7 @@ export const getDailyViews = query({
       .unique();
 
     if (!user) {
-      throw new Error("User not found");
+      return [];
     }
 
     // Get user's posts

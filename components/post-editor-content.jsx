@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageIcon, Sparkles, Wand2, Plus, Minus } from "lucide-react";
@@ -9,7 +9,18 @@ import dynamic from "next/dynamic";
 import { generateBlogContent, improveContent } from "@/app/actions/gemini";
 import { BarLoader } from "react-spinners";
 
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+// next/dynamic does not reliably forward refs, so pass the ref through an
+// explicit prop. The parent needs the Quill instance to insert images.
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import("react-quill-new");
+    const QuillWithRef = ({ forwardedRef, ...props }) => (
+      <RQ ref={forwardedRef} {...props} />
+    );
+    return QuillWithRef;
+  },
+  { ssr: false }
+);
 
 if (typeof window !== "undefined") {
   import("react-quill-new/dist/quill.snow.css");
@@ -71,13 +82,25 @@ export default function PostEditorContent({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
 
-  const getQuillModules = () => ({
-    ...quillConfig.modules,
-    toolbar: {
-      ...quillConfig.modules.toolbar,
-      handlers: { image: () => onImageUpload("content") },
-    },
-  });
+  // Keep the latest callback in a ref so the modules object never changes.
+  // react-quill-new deep-compares `modules`; a new handler function on every
+  // render made it destroy and rebuild the editor each time, losing the
+  // cursor position (so inserted images landed in the wrong place).
+  const onImageUploadRef = useRef(onImageUpload);
+  useEffect(() => {
+    onImageUploadRef.current = onImageUpload;
+  }, [onImageUpload]);
+
+  const quillModules = useMemo(
+    () => ({
+      ...quillConfig.modules,
+      toolbar: {
+        ...quillConfig.modules.toolbar,
+        handlers: { image: () => onImageUploadRef.current("content") },
+      },
+    }),
+    []
+  );
 
   const handleAI = async (type, improvementType = null) => {
     const { title, content, category, tags } = watchedValues;
@@ -230,11 +253,11 @@ export default function PostEditorContent({
           {/* Editor */}
           <div className="prose prose-lg max-w-none">
             <ReactQuill
-              ref={setQuillRef}
+              forwardedRef={setQuillRef}
               theme="snow"
               value={watchedValues.content}
               onChange={(content) => setValue("content", content)}
-              modules={getQuillModules()}
+              modules={quillModules}
               formats={quillConfig.formats}
               placeholder="Tell your story... or use AI to generate content!"
               style={{
@@ -265,7 +288,7 @@ export default function PostEditorContent({
           border: none !important;
           padding: 0 0 1rem 0 !important;
           position: sticky !important;
-          top: 80px !important;
+          top: calc(80px + var(--dev-bar-h, 0px)) !important;
           background: rgb(15, 23, 42) !important;
           z-index: 30 !important;
           border-radius: 8px !important;

@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-slate-800/50 backdrop-blur-sm border-r border-slate-700 z-50 transition-transform duration-300 lg:translate-x-0",
+          "fixed top-[var(--dev-bar-h,0px)] bottom-0 left-0 w-64 bg-slate-800/50 backdrop-blur-sm border-r border-slate-700 z-50 transition-transform duration-300 lg:translate-x-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -157,7 +157,7 @@ export default function DashboardLayout({ children }) {
       <div className="ml-0 lg:ml-64">
         {/* Top Header */}
         <header
-          className="fixed w-full top-0 right-0 z-30 bg-slate-800/80 backdrop-blur-md border-b border-slate-700"
+          className="fixed w-full top-[var(--dev-bar-h,0px)] right-0 z-30 bg-slate-800/80 backdrop-blur-md border-b border-slate-700"
           // style={{ left: "auto", width: "calc(100% - 16rem)" }}
         >
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">

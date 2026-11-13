@@ -76,13 +76,22 @@ export default function PostEditor({
     if (imageModalType === "featured") {
       setValue("featuredImage", imageData.url);
       toast.success("Featured image added!");
-    } else if (imageModalType === "content" && quillRef) {
-      const quill = quillRef.getEditor();
-      const range = quill.getSelection();
+    } else if (imageModalType === "content") {
+      const quill = quillRef?.getEditor?.();
+      if (!quill) {
+        toast.error("Editor not ready. Please try inserting the image again.");
+        setIsImageModalOpen(false);
+        return;
+      }
+      // getSelection(true) refocuses the editor and returns the cursor
+      // position Quill saved before the modal took focus.
+      const range = quill.getSelection(true);
       const index = range ? range.index : quill.getLength();
 
-      quill.insertEmbed(index, "image", imageData.url);
+      quill.insertEmbed(index, "image", imageData.url, "user");
       quill.setSelection(index + 1);
+      // Keep the form value in sync with the editor content
+      setValue("content", quill.root.innerHTML);
       toast.success("Image inserted!");
     }
     setIsImageModalOpen(false);

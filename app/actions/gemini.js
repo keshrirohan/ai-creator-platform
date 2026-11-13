@@ -1,16 +1,56 @@
 "use server";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { recordGeminiCall } from "@/lib/dev-usage";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Models tried in order. If one is overloaded (503), rate-limited (429)
+// or retired (404), the next one is used.
+const MODEL_FALLBACKS = [
+  "gemini-3.8-flash",
+  "gemini-flash-lite-latest",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
+  "gemini-3.7-flash",
+  "gemini-flash-latest",
+];
+const RETRY_PASSES = 2;
+const RETRY_DELAY_MS = 2000;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isRetryableModelError = (error) => {
+  const msg = error?.message || "";
+  return /\[(503|429|404)/.test(msg) || /high demand|overloaded|no longer available|not found/i.test(msg);
+};
+
+async function generateWithFallback(prompt) {
+  let lastError;
+  for (let pass = 0; pass < RETRY_PASSES; pass++) {
+    if (pass > 0) await sleep(RETRY_DELAY_MS);
+    for (const modelName of MODEL_FALLBACKS) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        await recordGeminiCall({ model: modelName, ok: true });
+        return text;
+      } catch (error) {
+        lastError = error;
+        await recordGeminiCall({ model: modelName, ok: false, error });
+        console.warn(`Gemini model ${modelName} failed: ${error.message}`);
+        if (!isRetryableModelError(error)) throw error;
+      }
+    }
+  }
+  throw lastError;
+}
 
 export async function generateBlogContent(title, category = "", tags = []) {
   try {
     if (!title || title.trim().length === 0) {
       throw new Error("Title is required to generate content");
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Create a detailed prompt for blog content generation
     const prompt = `
@@ -36,9 +76,7 @@ Do not include the title in the content as it will be added separately.
 Start directly with the introduction paragraph.
 `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const content = response.text();
+    const content = await generateWithFallback(prompt);
 
     // Basic validation
     if (!content || content.trim().length < 100) {
@@ -60,7 +98,12 @@ Start directly with the introduction paragraph.
       };
     }
 
-    if (error.message?.includes("quota") || error.message?.includes("limit")) {
+    if (
+      error.message?.includes("quota") ||
+      error.message?.includes("limit") ||
+      error.message?.includes("high demand") ||
+      error.message?.includes("503")
+    ) {
       return {
         success: false,
         error: "AI service is temporarily unavailable. Please try again later.",
@@ -82,8 +125,6 @@ export async function improveContent(
     if (!currentContent || currentContent.trim().length === 0) {
       throw new Error("Content is required for improvement");
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     let prompt = "";
 
@@ -134,9 +175,7 @@ Requirements:
 `;
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const improvedContent = response.text();
+    const improvedContent = await generateWithFallback(prompt);
 
     return {
       success: true,

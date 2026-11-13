@@ -45,6 +45,12 @@ export default function ProfilePage({ params }) {
     currentUser && user ? { followingId: user._id } : "skip"
   );
 
+  // Current signed-in user's Convex record (username lives in Convex, not Clerk)
+  const { data: currentConvexUser } = useConvexQuery(
+    api.users.getCurrentUser,
+    currentUser ? {} : "skip"
+  );
+
   // Follow mutation
   const toggleFollow = useConvexMutation(api.follows.toggleFollow);
 
@@ -65,13 +71,15 @@ export default function ProfilePage({ params }) {
 
   const posts = postsData?.posts || [];
   const isOwnProfile =
-    currentUser && currentUser.publicMetadata?.username === user.username;
+    !!currentConvexUser && currentConvexUser._id === user._id;
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
       toast.error("Please sign in to follow users");
       return;
     }
+
+    if (isOwnProfile) return;
 
     try {
       await toggleFollow.mutate({ followingId: user._id });
