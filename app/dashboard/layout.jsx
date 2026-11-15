@@ -11,8 +11,6 @@ import {
   Menu,
   X,
   Settings,
-  Languages,
-  Mic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,16 +40,6 @@ const sidebarItems = [
     title: "Followers",
     href: "/dashboard/followers",
     icon: Users,
-  },
-  {
-    title: "Creator Studio",
-    href: "/dashboard/studio",
-    icon: Languages,
-  },
-  {
-    title: "Voice to Blog",
-    href: "/dashboard/voice",
-    icon: Mic,
   },
 ];
 

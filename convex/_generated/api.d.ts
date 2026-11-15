@@ -20,6 +20,7 @@ import type * as follows from "../follows.js";
 import type * as likes from "../likes.js";
 import type * as posts from "../posts.js";
 import type * as public_ from "../public.js";
+import type * as translations from "../translations.js";
 import type * as users from "../users.js";
 
 /**
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   likes: typeof likes;
   posts: typeof posts;
   public: typeof public_;
+  translations: typeof translations;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

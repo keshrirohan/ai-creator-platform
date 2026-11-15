@@ -93,6 +93,17 @@ export default defineSchema({
     .index("by_following", ["followingId"])
     .index("by_relationship", ["followerId", "followingId"]), // Prevent duplicates
 
+  // Cached reader translations of published posts (one row per post + language)
+  translations: defineTable({
+    postId: v.id("posts"),
+    language: v.string(), // target language, e.g. "hindi"
+    sourceLanguage: v.optional(v.string()), // detected original language
+    title: v.string(),
+    content: v.string(), // sanitized HTML
+    sourceUpdatedAt: v.number(), // post.updatedAt when translated; stale if the post changes
+    createdAt: v.number(),
+  }).index("by_post_language", ["postId", "language"]),
+
   // Daily analytics tracking
   dailyStats: defineTable({
     postId: v.id("posts"),

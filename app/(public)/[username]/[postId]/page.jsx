@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { BarLoader } from "react-spinners";
+import PostTranslator from "@/components/post-translator";
 
 const PostPage = ({ params }) => {
   const { username, postId } = React.use(params);
@@ -34,6 +35,7 @@ const PostPage = ({ params }) => {
   );
 
   const [commentContent, setCommentContent] = useState("");
+  const [translation, setTranslation] = useState(null); // { title, content, language } or null
 
   const {
     data: post,
@@ -41,15 +43,17 @@ const PostPage = ({ params }) => {
     error: postError,
   } = useConvexQuery(api.public.getPublishedPost, { username, postId });
 
+  // Only query by postId once the post exists (an invalid id in the URL would
+  // otherwise fail Convex validation)
   const { data: comments, isLoading: commentsLoading } = useConvexQuery(
     api.comments.getPostComments,
-    { postId }
+    post ? { postId: post._id } : "skip"
   );
 
   // Get like status for current user
   const { data: hasLiked } = useConvexQuery(
     api.likes.hasUserLiked,
-    currentUser ? { postId } : "skip"
+    currentUser && post ? { postId: post._id } : "skip"
   );
 
   const toggleLike = useConvexMutation(api.likes.toggleLike);
@@ -152,7 +156,7 @@ const PostPage = ({ params }) => {
 
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold gradient-text-primary">
-              {post.title}
+              {translation?.title ?? post.title}
             </h1>
 
             <div className="flex items-center justify-between">
@@ -216,10 +220,19 @@ const PostPage = ({ params }) => {
             )}
           </div>
 
-          {/* Post Content */}
+          {/* Reader translation */}
+          <PostTranslator
+            username={username}
+            postId={postId}
+            originalContent={post.content}
+            translation={translation}
+            onChange={setTranslation}
+          />
+
+          {/* Post Content (translation is display-only; the post is unchanged) */}
           <div
             className="prose prose-lg max-w-none prose-invert prose-purple"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: translation?.content ?? post.content }}
           />
 
           <div className="flex items-center gap-6 pt-4 border-t border-slate-800">

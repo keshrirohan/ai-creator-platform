@@ -61,9 +61,16 @@ export const getPublishedPostsByUsername = query({
 export const getPublishedPost = query({
   args: {
     username: v.string(),
-    postId: v.id("posts"),
+    // A string, not v.id("posts"): any URL like /dashboard/old-page can reach the
+    // post page, and an invalid id should mean "not found", not a server error.
+    postId: v.string(),
   },
   handler: async (ctx, args) => {
+    const postId = ctx.db.normalizeId("posts", args.postId);
+    if (!postId) {
+      return null;
+    }
+
     // Get the user by username
     const user = await ctx.db
       .query("users")
@@ -75,7 +82,7 @@ export const getPublishedPost = query({
     }
 
     // Get the post
-    const post = await ctx.db.get(args.postId);
+    const post = await ctx.db.get(postId);
 
     if (!post) {
       return null;

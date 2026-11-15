@@ -271,6 +271,13 @@ export const deletePost = mutation({
       throw new Error("Not authorized to delete this post");
     }
 
+    // Remove cached reader translations of this post
+    const translations = await ctx.db
+      .query("translations")
+      .withIndex("by_post_language", (q) => q.eq("postId", args.id))
+      .collect();
+    for (const t of translations) await ctx.db.delete(t._id);
+
     await ctx.db.delete(args.id);
     return { success: true };
   },

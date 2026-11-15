@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import VoiceInputButton from "./voice-input-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageIcon, Sparkles, Wand2, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import { generateBlogContent, improveContent } from "@/app/actions/gemini";
+import { cleanStreamedHtml, htmlTextLength } from "@/lib/blog-ai";
 import { BarLoader } from "react-spinners";
 
 // next/dynamic does not reliably forward refs, so pass the ref through an
@@ -91,6 +92,39 @@ export default function PostEditorContent({
     onImageUploadRef.current = onImageUpload;
   }, [onImageUpload]);
 
+  // Keep a local handle on the editor (for voice input) and still pass it up
+  const localQuillRef = useRef(null);
+  const handleQuillRef = useCallback(
+    (instance) => {
+      localQuillRef.current = instance;
+      setQuillRef(instance);
+    },
+    [setQuillRef]
+  );
+
+  // Insert dictated text at the cursor (or at the end) as editable text
+  const handleTranscript = (text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    const quill = localQuillRef.current?.getEditor?.();
+    if (!quill) {
+      const paragraphs = clean
+        .split(/\n+/)
+        .map((p) => `<p>${p.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`)
+        .join("");
+      const current = watchedValues.content && watchedValues.content !== "<p><br></p>" ? watchedValues.content : "";
+      setValue("content", current + paragraphs);
+      return;
+    }
+    const range = quill.getSelection(true);
+    const index = range ? range.index : Math.max(0, quill.getLength() - 1);
+    const before = index > 0 ? quill.getText(index - 1, 1) : "\n";
+    const insert = (before === "\n" ? "" : " ") + clean;
+    quill.insertText(index, insert, "user");
+    quill.setSelection(index + insert.length);
+    setValue("content", quill.root.innerHTML);
+  };
+
   const quillModules = useMemo(
     () => ({
       ...quillConfig.modules,
@@ -121,22 +155,45 @@ export default function PostEditorContent({
       setIsImproving(true);
     }
 
+    const original = content || "";
     try {
-      const result =
-        type === "generate"
-          ? await generateBlogContent(title, category, tags || [])
-          : await improveContent(content, improvementType);
-
-      if (result.success) {
-        setValue("content", result.content);
-        toast.success(
-          `Content ${type === "generate" ? "generated" : improvementType + "d"} successfully!`
-        );
-      } else {
-        toast.error(result.error);
+      const res = await fetch("/api/ai/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          type === "generate"
+            ? { mode: "generate", title, category: category || undefined, tags: tags || [] }
+            : { mode: "improve", content, improvementType }
+        ),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to ${type} content. Please try again.`);
       }
+
+      // Show the text in the editor as it arrives (about every 120 ms)
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+      let lastPaint = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
+        if (Date.now() - lastPaint > 120) {
+          setValue("content", cleanStreamedHtml(text));
+          lastPaint = Date.now();
+        }
+      }
+      text += decoder.decode();
+
+      const finalHtml = cleanStreamedHtml(text).trim();
+      if (htmlTextLength(finalHtml) < 50) throw new Error("The AI returned too little content. Please try again.");
+      setValue("content", finalHtml);
+      toast.success(`Content ${type === "generate" ? "generated" : improvementType + "d"} successfully!`);
     } catch (error) {
-      toast.error(`Failed to ${type} content. Please try again.`);
+      setValue("content", original); // keep the user's text if anything failed
+      toast.error(error.message || `Failed to ${type} content. Please try again.`);
     } finally {
       type === "generate" ? setIsGenerating(false) : setIsImproving(false);
     }
@@ -244,6 +301,14 @@ export default function PostEditorContent({
                 Add a title to enable AI content generation
               </p>
             )}
+
+            {/* Voice input: dictate text, then edit or use the AI buttons above */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3">
+              <p className="text-xs text-slate-400">
+                Speak your ideas. The text is added at the cursor, then use AI Expand or Enhance to turn it into a blog.
+              </p>
+              <VoiceInputButton onTranscript={handleTranscript} disabled={isGenerating || isImproving} />
+            </div>
           </div>
 
           {(isGenerating || isImproving) && (
@@ -253,7 +318,8 @@ export default function PostEditorContent({
           {/* Editor */}
           <div className="prose prose-lg max-w-none">
             <ReactQuill
-              forwardedRef={setQuillRef}
+              forwardedRef={handleQuillRef}
+              readOnly={isGenerating || isImproving}
               theme="snow"
               value={watchedValues.content}
               onChange={(content) => setValue("content", content)}

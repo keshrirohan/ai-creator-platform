@@ -7,13 +7,13 @@ import {
   parseTranscriptionReply,
   validateAudio,
   validateLanguage,
-} from "@/lib/voice-to-blog";
+} from "@/lib/voice-transcription";
 
 // Audio is sent as multipart form data (server actions limit bodies to 1 MB)
 export async function POST(request) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: "Please sign in to use Voice to Blog" }, { status: 401 });
+    return NextResponse.json({ error: "Please sign in to use voice input" }, { status: 401 });
   }
 
   let formData;
@@ -45,7 +45,7 @@ export async function POST(request) {
         },
       ],
       generationConfig: { responseMimeType: "application/json" },
-    }, { models: FAST_MODELS, timeoutMs: 40_000 });
+    }, { models: FAST_MODELS, timeoutMs: 40_000, maxOutputTokens: 4096 });
 
     const result = parseTranscriptionReply(reply);
     if (!result) {
